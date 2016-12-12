@@ -1,71 +1,111 @@
 package uk.co.ruben9922.processing.ledmatrix;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PShape;
 
-public class LEDMatrix extends PApplet {
-    private static final int MATRIX_HEIGHT = 8;
-    private static final int MATRIX_WIDTH = 8;
-    private static final int LED_HEIGHT = 25;
-    private static final int LED_WIDTH = 25;
-    private static final int LED_SPACING_HEIGHT = 5;
-    private static final int LED_SPACING_WIDTH = 5;
-    private static final int BORDER_HEIGHT = 10;
-    private static final int BORDER_WIDTH = 10;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
 
-    private final int LED_OFF_COLOUR = color(127);
-    private final int LED_ON_COLOUR = color(255);
+public class LEDMatrix {
+    private final PApplet parent;
+    private final PShape ledShape;
+    private final int MATRIX_HEIGHT;
+    private final int MATRIX_WIDTH;
+    private final int LED_HEIGHT;
+    private final int LED_WIDTH;
+    private final int LED_SPACING_HEIGHT;
+    private final int LED_SPACING_WIDTH;
+    private final int LED_OFF_COLOUR;
+    private final int LED_ON_COLOUR;
 
-    private boolean[][] ledStates = new boolean[MATRIX_HEIGHT][MATRIX_WIDTH];
+    private boolean[][] ledStates;
 
-    private PShape ledShape;
+    public LEDMatrix(PApplet parent, boolean initialState, PShape ledShape, int MATRIX_HEIGHT, int MATRIX_WIDTH, int LED_HEIGHT,
+                     int LED_WIDTH, int LED_SPACING_HEIGHT, int LED_SPACING_WIDTH, int LED_OFF_COLOUR,
+                     int LED_ON_COLOUR) {
+        this.parent = parent;
+        this.ledShape = ledShape;
+        this.MATRIX_HEIGHT = MATRIX_HEIGHT;
+        this.MATRIX_WIDTH = MATRIX_WIDTH;
+        this.LED_HEIGHT = LED_HEIGHT;
+        this.LED_WIDTH = LED_WIDTH;
+        this.LED_SPACING_HEIGHT = LED_SPACING_HEIGHT;
+        this.LED_SPACING_WIDTH = LED_SPACING_WIDTH;
+        this.LED_OFF_COLOUR = LED_OFF_COLOUR;
+        this.LED_ON_COLOUR = LED_ON_COLOUR;
 
-    public static void main(String[] args) {
-        PApplet.main("uk.co.ruben9922.processing.ledmatrix.LEDMatrix");
-    }
-
-    public void settings() {
-        int total_height = (LED_HEIGHT * MATRIX_HEIGHT) + (LED_SPACING_HEIGHT * (MATRIX_HEIGHT - 1)) + (BORDER_HEIGHT * 2);
-        int total_width = (LED_WIDTH * MATRIX_WIDTH) + (LED_SPACING_WIDTH * (MATRIX_WIDTH - 1)) + (BORDER_WIDTH * 2);
-        size(total_width, total_height);
-    }
-
-    public void setup() {
         // Create array and initialise values to false
+        ledStates = new boolean[MATRIX_HEIGHT][MATRIX_WIDTH];
         for (int i = 0; i < ledStates.length; i++) {
             for (int j = 0; j < ledStates[i].length; j++) {
-                ledStates[i][j] = false;
+                ledStates[i][j] = initialState;
             }
         }
-
-        // Set up LED shape
-        ledShape = createLedShape();
-        ledShape.setStroke(false);
     }
 
+    // Call "primary" constructor with default values
+    public LEDMatrix(PApplet parent, boolean initialState) {
+        // Would have made this more readable but Java requires calls to `this` to be first statement in constructor
+        this(parent, initialState, ((UnaryOperator<PShape>)((x) -> { x.setStroke(false); return x; })).apply(parent.createShape(PApplet.RECT, 0, 0, 25, 25)),
+                8, 8, 25, 25, 5, 5, parent.color(127), parent.color(255));
+    }
+
+    public LEDMatrix(PApplet parent) {
+        this(parent, false);
+    }
+
+    public int computeTotalHeight() {
+        return (LED_HEIGHT * MATRIX_HEIGHT) + (LED_SPACING_HEIGHT * (MATRIX_HEIGHT - 1));
+    }
+
+    public int computeTotalWidth() {
+        return (LED_WIDTH * MATRIX_WIDTH) + (LED_SPACING_WIDTH * (MATRIX_WIDTH - 1));
+    }
+
+    // Given x- and y-coordinates, returns an Optional instance containing the current state of the LED with those
+    // coordinates
+    // Returns an empty Optional instance if given coordinates are invalid
+    @NotNull
+    public Optional<Boolean> getLEDState(int x, int y) {
+        if (areCoordinatesValid(x, y)) {
+            return Optional.of(ledStates[y][x]);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public void setLEDState(int x, int y, boolean state) {
+        if (areCoordinatesValid(x, y)) {
+            ledStates[y][x] = state;
+        }
+    }
+
+    // May change to return PShape rather than drawing directly
     public void draw() {
-        background(50);
+        parent.pushMatrix();
 
-        pushMatrix();
-
-        translate(BORDER_WIDTH, BORDER_HEIGHT);
+        parent.translate(PApplet.max(0, (parent.width - computeTotalWidth()) / 2),
+                PApplet.max(0, (parent.height - computeTotalHeight()) / 2));
 
         for (int i = 0; i < ledStates.length; i++) {
             for (int j = 0; j < ledStates[i].length; j++) {
                 boolean state = ledStates[i][j];
                 ledShape.setFill(state ? LED_ON_COLOUR : LED_OFF_COLOUR);
-                shape(ledShape);
-                translate(LED_WIDTH + LED_SPACING_WIDTH, 0);
+                parent.shape(ledShape);
+                parent.translate(LED_WIDTH + LED_SPACING_WIDTH, 0);
             }
             if (i != ledStates.length - 1) {
-                translate((LED_WIDTH + LED_SPACING_WIDTH) * -ledStates[i].length, LED_HEIGHT + LED_SPACING_HEIGHT);
+                parent.translate((LED_WIDTH + LED_SPACING_WIDTH) * -ledStates[i].length, LED_HEIGHT + LED_SPACING_HEIGHT);
             }
         }
 
-        popMatrix();
+        parent.popMatrix();
     }
 
-    private PShape createLedShape() {
-        return createShape(RECT, 0, 0, LED_WIDTH, LED_HEIGHT);
+    @Contract(pure = true)
+    private boolean areCoordinatesValid(int x, int y) {
+        return x >= 0 && y >= 0 && x < MATRIX_WIDTH && y < MATRIX_HEIGHT;
     }
 }
