@@ -57,14 +57,6 @@ public class LEDMatrix {
         this(parent, false);
     }
 
-    public int computeTotalHeight() {
-        return (LED_HEIGHT * MATRIX_HEIGHT) + (LED_SPACING_HEIGHT * (MATRIX_HEIGHT - 1));
-    }
-
-    public int computeTotalWidth() {
-        return (LED_WIDTH * MATRIX_WIDTH) + (LED_SPACING_WIDTH * (MATRIX_WIDTH - 1));
-    }
-
     // Given x- and y-coordinates, returns an Optional instance containing the current state of the LED with those
     // coordinates
     // Returns an empty Optional instance if given coordinates are invalid
@@ -119,8 +111,8 @@ public class LEDMatrix {
     public void draw() {
         parent.pushMatrix();
 
-        parent.translate(PApplet.max(0, (parent.width - computeTotalWidth()) / 2),
-                PApplet.max(0, (parent.height - computeTotalHeight()) / 2));
+        parent.translate(PApplet.max(0, (parent.width - calculateTotalWidth()) / 2),
+                PApplet.max(0, (parent.height - calculateTotalHeight()) / 2));
 
         for (int i = 0; i < ledStates.length; i++) {
             for (int j = 0; j < ledStates[i].length; j++) {
@@ -135,6 +127,16 @@ public class LEDMatrix {
         }
 
         parent.popMatrix();
+    }
+
+    @Contract(pure = true)
+    private int calculateTotalHeight() {
+        return (LED_HEIGHT * MATRIX_HEIGHT) + (LED_SPACING_HEIGHT * (MATRIX_HEIGHT - 1));
+    }
+
+    @Contract(pure = true)
+    private int calculateTotalWidth() {
+        return (LED_WIDTH * MATRIX_WIDTH) + (LED_SPACING_WIDTH * (MATRIX_WIDTH - 1));
     }
 
     @Contract(pure = true)
