@@ -11,34 +11,34 @@ import java.util.function.UnaryOperator;
 
 public class LEDMatrix {
     private final PApplet parent;
-    private final PShape ledShape;
-    private final int MATRIX_HEIGHT;
-    private final int MATRIX_WIDTH;
-    private final int LED_HEIGHT;
-    private final int LED_WIDTH;
-    private final int LED_SPACING_HEIGHT;
-    private final int LED_SPACING_WIDTH;
-    private final int LED_OFF_COLOUR;
-    private final int LED_ON_COLOUR;
 
+    private PShape ledShape;
+    private int matrixHeight;
+    private int matrixWidth;
+    private int ledHeight;
+    private int ledWidth;
+    private int ledSpacingHeight;
+    private int ledSpacingWidth;
+    private int ledOffColour;
+    private int ledOnColour;
     private boolean[][] ledStates;
 
-    public LEDMatrix(PApplet parent, boolean initialState, PShape ledShape, int MATRIX_HEIGHT, int MATRIX_WIDTH, int LED_HEIGHT,
-                     int LED_WIDTH, int LED_SPACING_HEIGHT, int LED_SPACING_WIDTH, int LED_OFF_COLOUR,
-                     int LED_ON_COLOUR) {
+    public LEDMatrix(PApplet parent, boolean initialState, PShape ledShape, int matrixHeight, int matrixWidth, int ledHeight,
+                     int ledWidth, int ledSpacingHeight, int ledSpacingWidth, int ledOffColour,
+                     int ledOnColour) {
         this.parent = parent;
         this.ledShape = ledShape;
-        this.MATRIX_HEIGHT = MATRIX_HEIGHT;
-        this.MATRIX_WIDTH = MATRIX_WIDTH;
-        this.LED_HEIGHT = LED_HEIGHT;
-        this.LED_WIDTH = LED_WIDTH;
-        this.LED_SPACING_HEIGHT = LED_SPACING_HEIGHT;
-        this.LED_SPACING_WIDTH = LED_SPACING_WIDTH;
-        this.LED_OFF_COLOUR = LED_OFF_COLOUR;
-        this.LED_ON_COLOUR = LED_ON_COLOUR;
+        this.matrixHeight = matrixHeight;
+        this.matrixWidth = matrixWidth;
+        this.ledHeight = ledHeight;
+        this.ledWidth = ledWidth;
+        this.ledSpacingHeight = ledSpacingHeight;
+        this.ledSpacingWidth = ledSpacingWidth;
+        this.ledOffColour = ledOffColour;
+        this.ledOnColour = ledOnColour;
 
         // Create array and initialise values to false
-        ledStates = new boolean[MATRIX_HEIGHT][MATRIX_WIDTH];
+        ledStates = new boolean[matrixHeight][matrixWidth];
         for (int i = 0; i < ledStates.length; i++) {
             for (int j = 0; j < ledStates[i].length; j++) {
                 ledStates[i][j] = initialState;
@@ -55,6 +55,78 @@ public class LEDMatrix {
 
     public LEDMatrix(PApplet parent) {
         this(parent, false);
+    }
+
+    public PShape getLedShape() {
+        return ledShape;
+    }
+
+    public void setLedShape(PShape ledShape) {
+        this.ledShape = ledShape;
+    }
+
+    public int getMatrixHeight() {
+        return matrixHeight;
+    }
+
+    public void setMatrixHeight(int matrixHeight) {
+        this.matrixHeight = matrixHeight;
+    }
+
+    public int getMatrixWidth() {
+        return matrixWidth;
+    }
+
+    public void setMatrixWidth(int matrixWidth) {
+        this.matrixWidth = matrixWidth;
+    }
+
+    public int getLedHeight() {
+        return ledHeight;
+    }
+
+    public void setLedHeight(int ledHeight) {
+        this.ledHeight = ledHeight;
+    }
+
+    public int getLedWidth() {
+        return ledWidth;
+    }
+
+    public void setLedWidth(int ledWidth) {
+        this.ledWidth = ledWidth;
+    }
+
+    public int getLedSpacingHeight() {
+        return ledSpacingHeight;
+    }
+
+    public void setLedSpacingHeight(int ledSpacingHeight) {
+        this.ledSpacingHeight = ledSpacingHeight;
+    }
+
+    public int getLedSpacingWidth() {
+        return ledSpacingWidth;
+    }
+
+    public void setLedSpacingWidth(int ledSpacingWidth) {
+        this.ledSpacingWidth = ledSpacingWidth;
+    }
+
+    public int getLedOffColour() {
+        return ledOffColour;
+    }
+
+    public void setLedOffColour(int ledOffColour) {
+        this.ledOffColour = ledOffColour;
+    }
+
+    public int getLedOnColour() {
+        return ledOnColour;
+    }
+
+    public void setLedOnColour(int ledOnColour) {
+        this.ledOnColour = ledOnColour;
     }
 
     // Given x- and y-coordinates, returns an Optional instance containing the current state of the LED with those
@@ -79,7 +151,7 @@ public class LEDMatrix {
     // LED in a single column
     public void setLEDStatesWithX(int x, boolean state) {
         if (isXCoordinateValid(x)) {
-            for (int i = 0; i < MATRIX_HEIGHT; i++) {
+            for (int i = 0; i < matrixHeight; i++) {
                 ledStates[i][x] = state;
             }
         }
@@ -89,15 +161,15 @@ public class LEDMatrix {
     // LED in a single row
     public void setLEDStatesWithY(int y, boolean state) {
         if (isYCoordinateValid(y)) {
-            for (int i = 0; i < MATRIX_WIDTH; i++) {
+            for (int i = 0; i < matrixWidth; i++) {
                 ledStates[y][i] = state;
             }
         }
     }
 
     public void setLEDStatesWithPredicate(BiPredicate<Integer, Integer> predicate, boolean state, boolean setOthers) {
-        for (int i = 0; i < MATRIX_HEIGHT; i++) {
-            for (int j = 0; j < MATRIX_WIDTH; j++) {
+        for (int i = 0; i < matrixHeight; i++) {
+            for (int j = 0; j < matrixWidth; j++) {
                 if (predicate.test(i, j)) {
                     ledStates[j][i] = state;
                 } else if (setOthers) {
@@ -117,12 +189,12 @@ public class LEDMatrix {
         for (int i = 0; i < ledStates.length; i++) {
             for (int j = 0; j < ledStates[i].length; j++) {
                 boolean state = ledStates[i][j];
-                ledShape.setFill(state ? LED_ON_COLOUR : LED_OFF_COLOUR);
+                ledShape.setFill(state ? ledOnColour : ledOffColour);
                 parent.shape(ledShape);
-                parent.translate(LED_WIDTH + LED_SPACING_WIDTH, 0);
+                parent.translate(ledWidth + ledSpacingWidth, 0);
             }
             if (i != ledStates.length - 1) {
-                parent.translate((LED_WIDTH + LED_SPACING_WIDTH) * -ledStates[i].length, LED_HEIGHT + LED_SPACING_HEIGHT);
+                parent.translate((ledWidth + ledSpacingWidth) * -ledStates[i].length, ledHeight + ledSpacingHeight);
             }
         }
 
@@ -131,12 +203,12 @@ public class LEDMatrix {
 
     @Contract(pure = true)
     private int calculateTotalHeight() {
-        return (LED_HEIGHT * MATRIX_HEIGHT) + (LED_SPACING_HEIGHT * (MATRIX_HEIGHT - 1));
+        return (ledHeight * matrixHeight) + (ledSpacingHeight * (matrixHeight - 1));
     }
 
     @Contract(pure = true)
     private int calculateTotalWidth() {
-        return (LED_WIDTH * MATRIX_WIDTH) + (LED_SPACING_WIDTH * (MATRIX_WIDTH - 1));
+        return (ledWidth * matrixWidth) + (ledSpacingWidth * (matrixWidth - 1));
     }
 
     @Contract(pure = true)
@@ -146,11 +218,11 @@ public class LEDMatrix {
 
     @Contract(pure = true)
     private boolean isXCoordinateValid(int x) {
-        return x >= 0 && x < MATRIX_WIDTH;
+        return x >= 0 && x < matrixWidth;
     }
 
     @Contract(pure = true)
     private boolean isYCoordinateValid(int y) {
-        return y >= 0 && y < MATRIX_HEIGHT;
+        return y >= 0 && y < matrixHeight;
     }
 }
