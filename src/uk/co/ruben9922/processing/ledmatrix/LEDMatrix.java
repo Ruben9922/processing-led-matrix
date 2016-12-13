@@ -6,6 +6,7 @@ import processing.core.PApplet;
 import processing.core.PShape;
 
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.function.UnaryOperator;
 
 public class LEDMatrix {
@@ -82,6 +83,38 @@ public class LEDMatrix {
         }
     }
 
+    // Does not use `setLEDStatesWithPredicate` method to avoid O(n^2) running time since only need to loop through each
+    // LED in a single column
+    public void setLEDStatesWithX(int x, boolean state) {
+        if (isXCoordinateValid(x)) {
+            for (int i = 0; i < MATRIX_HEIGHT; i++) {
+                ledStates[i][x] = state;
+            }
+        }
+    }
+
+    // Does not use `setLEDStatesWithPredicate` method to avoid O(n^2) running time since only need to loop through each
+    // LED in a single row
+    public void setLEDStatesWithY(int y, boolean state) {
+        if (isYCoordinateValid(y)) {
+            for (int i = 0; i < MATRIX_WIDTH; i++) {
+                ledStates[y][i] = state;
+            }
+        }
+    }
+
+    public void setLEDStatesWithPredicate(BiPredicate<Integer, Integer> predicate, boolean state, boolean setOthers) {
+        for (int i = 0; i < MATRIX_HEIGHT; i++) {
+            for (int j = 0; j < MATRIX_WIDTH; j++) {
+                if (predicate.test(i, j)) {
+                    ledStates[j][i] = state;
+                } else if (setOthers) {
+                    ledStates[j][i] = !state;
+                }
+            }
+        }
+    }
+
     // May change to return PShape rather than drawing directly
     public void draw() {
         parent.pushMatrix();
@@ -106,6 +139,16 @@ public class LEDMatrix {
 
     @Contract(pure = true)
     private boolean areCoordinatesValid(int x, int y) {
-        return x >= 0 && y >= 0 && x < MATRIX_WIDTH && y < MATRIX_HEIGHT;
+        return isXCoordinateValid(x) && isYCoordinateValid(y);
+    }
+
+    @Contract(pure = true)
+    private boolean isXCoordinateValid(int x) {
+        return x >= 0 && x < MATRIX_WIDTH;
+    }
+
+    @Contract(pure = true)
+    private boolean isYCoordinateValid(int y) {
+        return y >= 0 && y < MATRIX_HEIGHT;
     }
 }
